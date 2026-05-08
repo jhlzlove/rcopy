@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: cmg
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive: tar.gz
+
+          # Windows x64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive: zip
+
+          # macOS Intel
+          - os: macos-13
+            target: x86_64-apple-darwin
+            archive: tar.gz
+
+          # macOS Apple Silicon
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            archive: tar.gz
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      # Linux/macOS strip
+      - name: Strip Binary (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          strip target/${{ matrix.target }}/release/${{ env.APP_NAME }} || true
+
+      - name: Prepare Package (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir dist
+
+          cp target/${{ matrix.target }}/release/${{ env.APP_NAME }} dist/
+
+          cd dist
+
+          tar czf \
+            ../${{ env.APP_NAME }}-${{ matrix.target }}.tar.gz \
+            ${{ env.APP_NAME }}
+
+      - name: Prepare Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          mkdir dist
+
+          copy `
+            target/${{ matrix.target }}/release/${{ env.APP_NAME }}.exe `
+            dist/
+
+          Compress-Archive `
+            -Path dist/${{ env.APP_NAME }}.exe `
+            -DestinationPath ${{ env.APP_NAME }}-${{ matrix.target }}.zip
+
+      - name: Upload Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.tar.gz
+            *.zip

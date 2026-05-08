@@ -1,0 +1,52 @@
+# 是否开启 emoji
+emoji = true
+# 是否严格使用配置内的 scope
+# true  = 只能选择，不能自定义
+# false = 可选择 + 可自定义
+strict_scope = true
+# 简短描述最大长度（默认 100）
+max_header_length = 100
+
+# 提交类型配置
+[[types]]
+name = "feat"
+description = "新功能"
+emoji = "✨"
+
+[[types]]
+name = "fix"
+description = "Bug修复"
+emoji = "🐛"
+
+[[types]]
+name = "docs"
+description = "文档修改"
+emoji = "📝"
+
+[[types]]
+name = "style"
+description = "格式调整"
+emoji = "🎨"
+
+[[types]]
+name = "refactor"
+description = "代码重构"
+emoji = "♻️"
+
+[[types]]
+name = "perf"
+description = "性能优化"
+emoji = "⚡"
+
+[[types]]
+name = "test"
+description = "测试代码"
+emoji = "✅"
+
+[[types]]
+name = "chore"
+description = "构建工具"
+emoji = "🔧"
+
+# 作用域列表
+scopes = ["core", "ui", "api", "db", "auth", "deps", "ci"]
