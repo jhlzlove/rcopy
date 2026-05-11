@@ -1,14 +1,24 @@
 [package]
-name = "cmg"
+name = "pbcopy"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "cpy"
+path = "src/cpy.rs"
+
+[[bin]]
+name = "cpp"
+path = "src/cpp.rs"
+
 [dependencies]
-clap = { version = "4.5", features = ["derive"] }
-dialoguer = { version = "0.11", features = ["fuzzy-select"] }
-colored = "2.1"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-toml = "0.8"
+arboard = "3"
+anyhow = "1"
+encoding_rs = "0.8"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = [
+    "Win32_System_Console",
+] }
 
 # Minimal dependencies to keep the tool lightweight and cross-platform.

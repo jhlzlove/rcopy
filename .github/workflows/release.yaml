@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 env:
-  APP_NAME: cmg
+  CARGO_TERM_COLOR: always
 
 jobs:
   build:
@@ -18,78 +18,62 @@ jobs:
 
     strategy:
       fail-fast: false
+
       matrix:
         include:
-          # Linux x64
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             archive: tar.gz
 
-          # Windows x64
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            archive: zip
-
-          # macOS Intel
-          - os: macos-13
+          - os: macos-latest
             target: x86_64-apple-darwin
             archive: tar.gz
 
-          # macOS Apple Silicon
           - os: macos-latest
             target: aarch64-apple-darwin
             archive: tar.gz
 
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive: zip
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
 
-      - name: Cache Cargo
-        uses: Swatinem/rust-cache@v2
+      - name: Add target
+        run: rustup target add ${{ matrix.target }}
 
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
 
-      # Linux/macOS strip
-      - name: Strip Binary (Unix)
+      - name: Prepare artifacts (Unix)
         if: runner.os != 'Windows'
-        run: |
-          strip target/${{ matrix.target }}/release/${{ env.APP_NAME }} || true
-
-      - name: Prepare Package (Unix)
-        if: runner.os != 'Windows'
-        shell: bash
         run: |
           mkdir dist
 
-          cp target/${{ matrix.target }}/release/${{ env.APP_NAME }} dist/
+          cp target/${{ matrix.target }}/release/cpy dist/
+          cp target/${{ matrix.target }}/release/cpp dist/
 
-          cd dist
+          tar -czf clipboard-cli-${{ matrix.target }}.tar.gz -C dist .
 
-          tar czf \
-            ../${{ env.APP_NAME }}-${{ matrix.target }}.tar.gz \
-            ${{ env.APP_NAME }}
-
-      - name: Prepare Package (Windows)
+      - name: Prepare artifacts (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          mkdir dist
+          New-Item -ItemType Directory -Force dist
 
-          copy `
-            target/${{ matrix.target }}/release/${{ env.APP_NAME }}.exe `
-            dist/
+          Copy-Item target/${{ matrix.target }}/release/cpy.exe dist/
+          Copy-Item target/${{ matrix.target }}/release/cpp.exe dist/
 
           Compress-Archive `
-            -Path dist/${{ env.APP_NAME }}.exe `
-            -DestinationPath ${{ env.APP_NAME }}-${{ matrix.target }}.zip
+            -Path dist/* `
+            -DestinationPath clipboard-cli-${{ matrix.target }}.zip
 
-      - name: Upload Release
+      - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
           files: |

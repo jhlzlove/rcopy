@@ -1,17 +1,92 @@
-# Git 规范提交工具
+# clipboard-cli
 
-> [!IMPORTANT]
-> 只能用来 commit
+A tiny cross-platform clipboard utility written in Rust.
 
-## 配置
+`cpy` copies stdin into the system clipboard.  
+`cpp` prints clipboard contents to stdout.
 
-```toml
-# 是否开启 emoji
-emoji = true
-# 是否严格使用配置内的 scope
-# true  = 只能选择，不能自定义
-# false = 可选择 + 可自定义
-strict_scope = true
-# 简短描述最大长度（默认 100）
-max_header_length = 100
+---
+
+# Features
+
+- Cross-platform clipboard support
+- Unicode / emoji support
+- Works in Git Bash on Windows
+- Safe stdin handling (`read_to_end`)
+- Handles non-UTF8 shell output gracefully
+- Tiny and fast
+- Text clipboard only
+
+---
+
+# Build
+
+```bash
+cargo build --release
 ```
+
+---
+
+# Usage
+
+## Copy text
+
+```bash
+echo "hello world" | cpy
+```
+
+## Copy Unicode
+
+```bash
+echo "诗酒趁年华 😂" | cpy
+```
+
+## Paste clipboard
+
+```bash
+cpp
+```
+
+## Copy command output
+
+```bash
+ipconfig | cpy
+```
+
+```bash
+systeminfo | cpy
+```
+
+```bash
+wmic process list brief | cpy
+```
+
+---
+
+# Notes
+
+This tool currently supports text clipboard operations only.
+
+Images, files, and rich content are not supported.
+
+---
+
+# Example
+
+```bash
+echo "Rust is awesome 🦀" | cpy
+
+cpp
+```
+
+Output:
+
+```text
+Rust is awesome 🦀
+```
+
+---
+
+# License
+
+MIT
